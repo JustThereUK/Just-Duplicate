@@ -1,0 +1,178 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: en\n"
+
+# Extracted from just-duplicate/just-duplicate.php
+msgid "ABSPATH"
+msgstr ""
+
+msgid "jquery"
+msgstr ""
+
+# Extracted from just-duplicate/uninstall.php
+msgid "editor"
+msgstr ""
+
+# Extracted from just-duplicate/includes/class-duplicate-handler.php
+msgid "guid"
+msgstr ""
+
+msgid "duplicate"
+msgstr ""
+
+msgid "content"
+msgstr ""
+
+msgid "url"
+msgstr ""
+
+msgid "author"
+msgstr ""
+
+msgid "date"
+msgstr ""
+
+msgid "Duplicate"
+msgstr ""
+
+msgid "post"
+msgstr ""
+
+msgid "extension"
+msgstr ""
+
+msgid "Preview Duplicate"
+msgstr ""
+
+msgid "excerpt"
+msgstr ""
+
+msgid "inherit"
+msgstr ""
+
+msgid "duplicated"
+msgstr ""
+
+msgid "title"
+msgstr ""
+
+msgid "draft"
+msgstr ""
+
+msgid "filename"
+msgstr ""
+
+msgid "fields"
+msgstr ""
+
+msgid "action"
+msgstr ""
+
+msgid "slugs"
+msgstr ""
+
+msgid "dirname"
+msgstr ""
+
+msgid "type"
+msgstr ""
+
+# Extracted from just-duplicate/includes/admin/class-menu-duplicator.php
+msgid "Duplicate Menu"
+msgstr ""
+
+msgid "click"
+msgstr ""
+
+msgid "menu"
+msgstr ""
+
+msgid "Menu Duplicator hook fired"
+msgstr ""
+
+# Extracted from just-duplicate/includes/admin/class-media-duplicator.php
+msgid "Duplicate Media"
+msgstr ""
+
+msgid "media"
+msgstr ""
+
+msgid "label"
+msgstr ""
+
+msgid "button"
+msgstr ""
+
+# Extracted from just-duplicate/includes/admin/class-admin-settings.php
+msgid "General"
+msgstr ""
+
+msgid "Just Duplicate"
+msgstr ""
+
+msgid "Useful Links"
+msgstr ""
+
+msgid "wrap"
+msgstr ""
+
+msgid "Just Duplicate Settings"
+msgstr ""
+
+msgid "Settings for Just Duplicate"
+msgstr ""
+
+msgid "System Requirements"
+msgstr ""
+
+msgid "Duplicate Attachments"
+msgstr ""
+
+msgid "Advanced Settings"
+msgstr ""
+
+msgid "Plugin Listing"
+msgstr ""
+
+msgid "Feature Request"
+msgstr ""
+
+msgid "Getting Started"
+msgstr ""
+
+msgid "description"
+msgstr ""
+
+msgid "Buy Us a Coffee"
+msgstr ""
+
+msgid "[default_suffix]" value=""
+msgstr ""
+
+msgid "General Settings"
+msgstr ""
+
+msgid "Contact Us"
+msgstr ""
+
+msgid "Advanced"
+msgstr ""
+
+msgid "Support"
+msgstr ""
+
+msgid "Documentation"
+msgstr ""
+
+msgid "Duplicate Taxonomies"
+msgstr ""
+
+msgid "Default Suffix"
+msgstr ""
+
+msgid "Redirect After Duplication"
+msgstr ""
+
+msgid "Default Prefix"
+msgstr ""
