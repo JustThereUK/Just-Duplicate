@@ -1,0 +1,152 @@
+/* =====================================================
+   Just Duplicate Admin Styles - Default WordPress Colours
+   ===================================================== */
+
+/* Define CSS variables for easy maintenance using default WP admin colours */
+:root {
+    --jd-bg-color: #fff;                   /* White background for panels */
+    --jd-border-color: #ccc;               /* Standard light gray border */
+    --jd-border-color-light: #ccc;         /* Same as border color */
+    --jd-tab-bg: #f1f1f1;                  /* Inactive tab background */
+    --jd-tab-bg-hover: #e5e5e5;            /* Hover state for tabs */
+    --jd-tab-bg-active: #fff;              /* Active tab background (white) */
+    --jd-tab-font-weight: 500;
+    --jd-padding: 20px;
+    --jd-transition: 0.3s ease;
+    --jd-border-radius: 3px;
+    --jd-text-color: #23282d;              /* Default admin text colour */
+}
+
+/* Container styling */
+.just-duplicate-wrap {
+    background: var(--jd-bg-color);
+    padding: var(--jd-padding);
+    border: 1px solid var(--jd-border-color);
+    border-radius: var(--jd-border-radius);
+    color: var(--jd-text-color);
+}
+
+/* Headings within the settings */
+.just-duplicate-wrap h1 {
+    color: var(--jd-text-color);
+}
+
+/* Tabs Navigation */
+.jd-tabs {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 var(--jd-padding);
+    display: flex;
+    border-bottom: 1px solid var(--jd-border-color-light);
+}
+
+.jd-tabs .jd-tab {
+    padding: 10px 20px;
+    cursor: pointer;
+    background: var(--jd-tab-bg);
+    border: 1px solid var(--jd-border-color-light);
+    border-bottom: none;
+    margin-right: 5px;
+    font-weight: var(--jd-tab-font-weight);
+    transition: background var(--jd-transition);
+    color: var(--jd-text-color);
+}
+
+.jd-tabs .jd-tab:hover {
+    background: var(--jd-tab-bg-hover);
+}
+
+.jd-tabs .jd-tab.active {
+    background: var(--jd-tab-bg-active);
+    border-bottom: 1px solid var(--jd-tab-bg-active);
+}
+
+/* Tabs Content */
+.jd-tab-content {
+    display: none;
+    padding: var(--jd-padding);
+    border: 1px solid var(--jd-border-color-light);
+    border-radius: 0 var(--jd-border-radius) var(--jd-border-radius) var(--jd-border-radius);
+    color: var(--jd-text-color);
+}
+
+.jd-tab-content.active {
+    display: block;
+}
+
+/* Preview Modal Overlay */
+.preview-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn var(--jd-transition);
+}
+
+/* Preview Modal Container */
+.preview-modal {
+    background: var(--jd-bg-color);
+    padding: var(--jd-padding);
+    max-width: 800px;
+    width: 90%;
+    max-height: 80vh;              /* Limit height and allow scroll if content is long */
+    overflow-y: auto;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-radius: var(--jd-border-radius);
+    position: relative;            /* For positioning the close button */
+    color: var(--jd-text-color);
+}
+
+/* Close Button for Modal */
+.preview-modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    line-height: 1;
+    color: var(--jd-text-color);
+    cursor: pointer;
+    transition: color var(--jd-transition);
+}
+
+.preview-modal-close:hover {
+    color: #0073aa;  /* Default WP admin blue */
+}
+
+/* Modal Heading */
+.preview-modal h2 {
+    margin-top: 0;
+}
+
+/* Modal Actions */
+.preview-actions {
+    margin-top: var(--jd-padding);
+    text-align: right;
+}
+
+/* Button styles for modal */
+.preview-modal .button {
+    background-color: #0073aa;  /* Default WP blue */
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: var(--jd-border-radius);
+    transition: background-color var(--jd-transition);
+    cursor: pointer;
+}
+
+.preview-modal .button:hover {
+    background-color: #006799;
+}
+
+/* Fade In Animation */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
