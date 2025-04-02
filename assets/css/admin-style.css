@@ -15,6 +15,14 @@
     --jd-transition: 0.3s ease;
     --jd-border-radius: 3px;
     --jd-text-color: #23282d;              /* Default admin text colour */
+    --jd-font-family: 'Arial', sans-serif; /* Modern font */
+    --jd-box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    --jd-hover-color: #005a8c; /* Darker blue for hover effects */
+}
+
+/* Apply modern font */
+body {
+    font-family: var(--jd-font-family);
 }
 
 /* Container styling */
@@ -24,6 +32,7 @@
     border: 1px solid var(--jd-border-color);
     border-radius: var(--jd-border-radius);
     color: var(--jd-text-color);
+    box-shadow: var(--jd-box-shadow);
 }
 
 /* Headings within the settings */
@@ -50,15 +59,18 @@
     font-weight: var(--jd-tab-font-weight);
     transition: background var(--jd-transition);
     color: var(--jd-text-color);
+    border-radius: var(--jd-border-radius) var(--jd-border-radius) 0 0;
 }
 
 .jd-tabs .jd-tab:hover {
     background: var(--jd-tab-bg-hover);
+    color: var(--jd-hover-color);
 }
 
 .jd-tabs .jd-tab.active {
     background: var(--jd-tab-bg-active);
     border-bottom: 1px solid var(--jd-tab-bg-active);
+    color: var(--jd-hover-color);
 }
 
 /* Tabs Content */
@@ -97,10 +109,18 @@
     width: 90%;
     max-height: 80vh;              /* Limit height and allow scroll if content is long */
     overflow-y: auto;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--jd-box-shadow);
     border-radius: var(--jd-border-radius);
     position: relative;            /* For positioning the close button */
     color: var(--jd-text-color);
+    transition: opacity var(--jd-transition), transform var(--jd-transition);
+    transform: scale(0.95); /* Slightly shrink modal initially */
+    opacity: 0; /* Initially hidden */
+}
+
+.preview-modal.active {
+    transform: scale(1); /* Scale to full size */
+    opacity: 1; /* Fully visible */
 }
 
 /* Close Button for Modal */
@@ -116,7 +136,7 @@
 }
 
 .preview-modal-close:hover {
-    color: #0073aa;  /* Default WP admin blue */
+    color: var(--jd-hover-color);
 }
 
 /* Modal Heading */
@@ -137,12 +157,13 @@
     border: none;
     padding: 8px 16px;
     border-radius: var(--jd-border-radius);
-    transition: background-color var(--jd-transition);
+    transition: background-color var(--jd-transition), transform var(--jd-transition);
     cursor: pointer;
 }
 
 .preview-modal .button:hover {
-    background-color: #006799;
+    background-color: var(--jd-hover-color);
+    transform: translateY(-2px); /* Slight lift effect */
 }
 
 /* Fade In Animation */

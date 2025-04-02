@@ -12,6 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Duplicate_Handler {
 
+    private static $last_duplicated_post_id;
+
     /**
      * Initialize the duplication handler.
      *
@@ -26,6 +28,12 @@ class Duplicate_Handler {
 
         // Handle the duplication action.
         add_action( 'admin_action_duplicate_post', [ __CLASS__, 'process_duplication' ] );
+
+        // Hook to display the rollback notice.
+        add_action( 'admin_notices', [ __CLASS__, 'add_rollback_notice' ] );
+
+        // Hook to handle the rollback action.
+        add_action( 'admin_action_rollback_duplicate', [ __CLASS__, 'handle_rollback_action' ] );
     }
 
     /**
@@ -75,24 +83,19 @@ class Duplicate_Handler {
     }
 
     /**
-     * Process the duplication of a post or page.
-     *
-     * Validates permissions, duplicates the post along with its meta, taxonomies, and attachments (if enabled),
-     * and then conditionally redirects based on the "redirect_after_duplicate" setting.
-     *
-     * @return void
+     * Process the duplication of a post or page with role-based access control.
      */
     public static function process_duplication(): void {
-        // Verify required parameters.
+        // Verify nonce.
         if ( ! isset( $_GET['_wpnonce'], $_GET['post'] ) ) {
             wp_die( esc_html__( 'Missing required parameters.', 'just-duplicate' ) );
         }
 
         $post_id = absint( $_GET['post'] );
-        $nonce   = sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) );
+        $nonce   = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '';
 
         if ( ! wp_verify_nonce( $nonce, 'duplicate_post_' . $post_id ) ) {
-            wp_die( esc_html__( 'You do not have permission to duplicate this item.', 'just-duplicate' ) );
+            wp_die( esc_html__( 'Nonce verification failed.', 'just-duplicate' ) );
         }
 
         $post = get_post( $post_id );
@@ -100,86 +103,151 @@ class Duplicate_Handler {
             wp_die( esc_html__( 'The post you are trying to duplicate does not exist.', 'just-duplicate' ) );
         }
 
-        // Additional permission check.
-        if ( ! current_user_can( 'edit_posts', $post_id ) ) {
-            wp_die( esc_html__( 'You do not have sufficient permissions to duplicate this post.', 'just-duplicate' ) );
+        // Role-based access control.
+        $current_user_id = get_current_user_id();
+        if ( ! ( current_user_can( 'manage_options' ) || current_user_can( 'edit_others_posts' ) || 
+                 ( current_user_can( 'edit_posts' ) && $current_user_id === $post->post_author ) ) ) {
+            wp_die( esc_html__( 'You do not have permission to duplicate this post.', 'just-duplicate' ) );
         }
 
-        // Prepare the duplicated post.
-        $new_post_data = [
-            'post_title'   => sanitize_text_field( $post->post_title ) . ' (Copy)',
-            'post_content' => wp_kses_post( $post->post_content ),
-            'post_status'  => 'draft',
-            'post_type'    => sanitize_text_field( $post->post_type ),
-            'post_author'  => get_current_user_id(),
-            'post_excerpt' => sanitize_text_field( $post->post_excerpt ),
-            'post_parent'  => absint( $post->post_parent ),
-        ];
+        // Duplicate the post.
+        $new_post_id = self::duplicate_post( $post_id );
 
-        // Insert the duplicated post.
-        $new_post_id = wp_insert_post( $new_post_data );
-        if ( is_wp_error( $new_post_id ) || ! $new_post_id ) {
+        if ( $new_post_id ) {
+            // Redirect back to the referring page.
+            $referer = wp_get_referer();
+            $redirect_url = $referer ? $referer : admin_url( 'edit.php' );
+            wp_redirect( $redirect_url );
+            exit;
+        } else {
             wp_die( esc_html__( 'Failed to duplicate the post.', 'just-duplicate' ) );
         }
+    }
 
-        // Log the duplication action.
-        Duplicate_Logger::log( $post_id, $new_post_id, 'post' );
-
-        // Retrieve selective duplication options.
-        $options = self::get_selective_duplication_options();
-
-        // Conditionally copy post meta.
-        if ( $options['duplicate_post_meta'] ) {
-            self::copy_post_meta( $post_id, $new_post_id );
+    /**
+     * Duplicate a post or page.
+     *
+     * @param int $post_id The ID of the post to duplicate.
+     * @return int|null The ID of the duplicated post, or null on failure.
+     */
+    public static function duplicate_post( int $post_id ): ?int {
+        $post = get_post( $post_id );
+        if ( ! $post ) {
+            return null;
         }
-        // Conditionally copy taxonomies.
-        if ( $options['duplicate_taxonomies'] ) {
-            self::copy_post_taxonomies( $post_id, $new_post_id );
+
+        // Trigger the before duplicate hook.
+        do_action( 'just_duplicate_before_duplicate', $post_id );
+
+        $settings = get_option( 'JUST_DUPLICATE_settings', [] );
+
+        // Prepare the new post data.
+        $new_post = [
+            'post_title'   => $settings['custom_title'] ?: $post->post_title . ' (Copy)',
+            'post_name'    => $settings['custom_slug'] ?: '',
+            'post_content' => $post->post_content,
+            'post_status'  => $settings['custom_post_status'] ?? 'draft',
+            'post_type'    => $post->post_type,
+            'post_author'  => get_current_user_id(),
+            'post_excerpt' => $post->post_excerpt,
+            'post_parent'  => $post->post_parent,
+        ];
+
+        // Insert the new post.
+        $new_post_id = wp_insert_post( $new_post );
+        if ( is_wp_error( $new_post_id ) || ! $new_post_id ) {
+            return null;
         }
-        // Conditionally duplicate attachments (e.g., featured image).
-        if ( $options['duplicate_attachments'] ) {
-            $thumb_id = get_post_thumbnail_id( $post_id );
-            if ( $thumb_id ) {
-                $new_thumb_id = self::duplicate_attachment( $thumb_id, $new_post_id );
-                if ( $new_thumb_id ) {
-                    set_post_thumbnail( $new_post_id, $new_thumb_id );
-                }
+
+        // Copy metadata, taxonomies, and other related data.
+        self::copy_post_meta( $post_id, $new_post_id );
+        self::copy_post_taxonomies( $post_id, $new_post_id );
+
+        // If the original post has a featured image, duplicate it.
+        $thumb_id = get_post_thumbnail_id( $post_id );
+        if ( $thumb_id ) {
+            $new_thumb_id = self::duplicate_attachment( $thumb_id, $new_post_id );
+            if ( $new_thumb_id ) {
+                set_post_thumbnail( $new_post_id, $new_thumb_id );
             }
         }
-        // Conditionally copy custom fields.
-        if ( $options['duplicate_custom_fields'] ) {
-            self::copy_custom_fields( $post_id, $new_post_id );
-        }
-        // Conditionally copy custom taxonomies.
-        if ( $options['duplicate_custom_taxonomies'] ) {
-            self::copy_custom_taxonomies( $post_id, $new_post_id );
-        }
-        // Conditionally copy comments.
-        if ( $options['duplicate_comments'] ) {
-            self::copy_comments( $post_id, $new_post_id );
-        }
-        // Conditionally copy featured image.
-        if ( $options['duplicate_featured_image'] ) {
-            $thumb_id = get_post_thumbnail_id( $post_id );
-            if ( $thumb_id ) {
-                $new_thumb_id = self::duplicate_attachment( $thumb_id, $new_post_id );
-                if ( $new_thumb_id ) {
-                    set_post_thumbnail( $new_post_id, $new_thumb_id );
-                }
-            }
+
+        // Store the last duplicated post ID.
+        self::$last_duplicated_post_id = $new_post_id;
+
+        // Store the last duplicated post ID in a transient.
+        if ( $new_post_id ) {
+            set_transient( 'just_duplicate_last_post_id', $new_post_id, HOUR_IN_SECONDS );
         }
 
-        // Check the "redirect_after_duplicate" setting.
-        if ( ! empty( $settings['redirect_after_duplicate'] ) ) {
-            // Redirect to the edit screen of the new post.
-            wp_redirect( admin_url( 'post.php?action=edit&post=' . $new_post_id ) );
+        // Trigger the after duplicate hook.
+        do_action( 'just_duplicate_after_duplicate', $post_id, $new_post_id );
+
+        return $new_post_id;
+    }
+
+    /**
+     * Get the last duplicated post ID.
+     *
+     * @return int|null The ID of the last duplicated post, or null if none.
+     */
+    public static function get_last_duplicated_post_id(): ?int {
+        return self::$last_duplicated_post_id;
+    }
+
+    /**
+     * Rollback the last duplicated post.
+     *
+     * @return void
+     */
+    public static function rollback_last_duplicate(): void {
+        $last_post_id = get_transient( 'just_duplicate_last_post_id' );
+
+        if ( $last_post_id ) {
+            wp_delete_post( $last_post_id, true );
+            delete_transient( 'just_duplicate_last_post_id' );
+            add_action( 'admin_notices', function () {
+                echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'The last duplicated post has been rolled back.', 'just-duplicate' ) . '</p></div>';
+            } );
         } else {
-            // Redirect back to the referring page (fallback to the posts list if no referer).
-            $redirect_url = wp_get_referer() ? wp_get_referer() : admin_url( 'edit.php' );
-            // Optionally, add a query parameter to indicate duplication success.
-            $redirect_url = add_query_arg( 'duplicated', $new_post_id, $redirect_url );
-            wp_redirect( $redirect_url );
+            add_action( 'admin_notices', function () {
+                echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'No duplicated post found to rollback.', 'just-duplicate' ) . '</p></div>';
+            } );
         }
+    }
+
+    /**
+     * Add an admin notice with a rollback link after duplication.
+     */
+    public static function add_rollback_notice(): void {
+        $last_post_id = get_transient( 'just_duplicate_last_post_id' );
+
+        if ( $last_post_id ) {
+            $rollback_url = add_query_arg(
+                [
+                    'action' => 'rollback_duplicate',
+                    '_wpnonce' => wp_create_nonce( 'rollback_duplicate' ),
+                ],
+                admin_url( 'admin.php' )
+            );
+
+            echo '<div class="notice notice-info is-dismissible"><p>' .
+                esc_html__( 'A post has been duplicated. ', 'just-duplicate' ) .
+                '<a href="' . esc_url( $rollback_url ) . '">' . esc_html__( 'Undo this action.', 'just-duplicate' ) . '</a>' .
+                '</p></div>';
+        }
+    }
+
+    /**
+     * Handle the rollback action.
+     */
+    public static function handle_rollback_action(): void {
+        if ( ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'rollback_duplicate' ) ) {
+            wp_die( esc_html__( 'Nonce verification failed.', 'just-duplicate' ) );
+        }
+
+        self::rollback_last_duplicate();
+        wp_redirect( admin_url( 'edit.php' ) );
         exit;
     }
 
@@ -205,6 +273,15 @@ class Duplicate_Handler {
             if ( in_array( $key, $exclude_keys, true ) ) {
                 continue;
             }
+
+            // Only copy Elementor-specific meta keys if the original post was edited in Elementor.
+            if ( in_array( $key, [ '_elementor_edit_mode', '_elementor_data', '_elementor_template_type', '_elementor_version' ], true ) ) {
+                $is_elementor = get_post_meta( $old_post_id, '_elementor_edit_mode', true );
+                if ( ! $is_elementor ) {
+                    continue;
+                }
+            }
+
             foreach ( $values as $value ) {
                 add_post_meta( $new_post_id, $key, maybe_unserialize( $value ) );
             }
@@ -322,21 +399,19 @@ class Duplicate_Handler {
      * @return void
      */
     public static function preview_duplicate(): void {
+        // Verify the AJAX nonce.
+        check_ajax_referer( 'preview_duplicate_post', '_wpnonce' );
+
         // Check permissions.
         if ( ! current_user_can( 'edit_posts' ) ) {
-            wp_send_json_error( __( 'Permission denied.', 'just-duplicate' ) );
+            wp_send_json_error( esc_html__( 'Permission denied.', 'just-duplicate' ) );
         }
         
         $post_id = isset( $_GET['post'] ) ? absint( $_GET['post'] ) : 0;
-        $nonce   = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '';
-
-        if ( ! wp_verify_nonce( $nonce, 'preview_duplicate_post_' . $post_id ) ) {
-            wp_send_json_error( __( 'Nonce verification failed.', 'just-duplicate' ) );
-        }
 
         $post = get_post( $post_id );
         if ( ! $post ) {
-            wp_send_json_error( __( 'Post not found.', 'just-duplicate' ) );
+            wp_send_json_error( esc_html__( 'Post not found.', 'just-duplicate' ) );
         }
 
         // Retrieve plugin settings.
@@ -349,21 +424,21 @@ class Duplicate_Handler {
         // Build preview data.
         $preview_data = [
             'post_id'      => $post->ID,
-            'title'        => $default_prefix . $post->post_title . $default_suffix,
-            'content'      => apply_filters( 'the_content', $post->post_content ),
-            'excerpt'      => $post->post_excerpt,
-            'author'       => get_the_author_meta( 'display_name', $post->post_author ),
-            'date'         => $post->post_date,
-            'duplicate_url'=> wp_nonce_url(
-                                add_query_arg(
-                                    [
-                                        'action' => 'duplicate_post',
-                                        'post'   => $post->ID,
-                                    ],
-                                    admin_url( 'admin.php' )
-                                ),
-                                'duplicate_post_' . $post->ID
-                              ),
+            'title'        => esc_html( $default_prefix . $post->post_title . $default_suffix ),
+            'content'      => wp_kses_post( apply_filters( 'the_content', $post->post_content ) ),
+            'excerpt'      => esc_html( $post->post_excerpt ),
+            'author'       => esc_html( get_the_author_meta( 'display_name', $post->post_author ) ),
+            'date'         => esc_html( $post->post_date ),
+            'duplicate_url'=> esc_url( wp_nonce_url(
+                add_query_arg(
+                    [
+                        'action' => 'duplicate_post',
+                        'post'   => $post->ID,
+                    ],
+                    admin_url( 'admin.php' )
+                ),
+                'duplicate_post_' . $post->ID
+            ) ),
         ];
 
         wp_send_json_success( $preview_data );

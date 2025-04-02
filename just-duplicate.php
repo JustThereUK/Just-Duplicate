@@ -3,13 +3,13 @@
  * Plugin Name: Just Duplicate
  * Plugin URI: https://wordpress.org/plugins/just-duplicate
  * Description: A powerful plugin to duplicate pages, posts, custom post types, WooCommerce products, menus, and more. Supports batch duplication, customizable options, and compatibility with major plugins and themes.
- * Version: 1.0.2
+ * Version: 1.0.3
  * Requires at least: 5.0
  * Tested up to: 6.7
  * Requires PHP: 7.0
  * Author: Just There
  * Author URI: https://justthere.co.uk/
- * Support Us: https://justthere.co.uk/donate
+ * Support Us: https://justthere.co.uk/plugins/support-us/
  * License: GPLv3
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain: just-duplicate
@@ -20,7 +20,7 @@
 defined( 'ABSPATH' ) || exit;
 
 // Define plugin constants.
-define( 'JUST_DUPLICATE_VERSION', '1.0.2' );
+define( 'JUST_DUPLICATE_VERSION', '1.0.3' );
 define( 'JUST_DUPLICATE_PATH', plugin_dir_path( __FILE__ ) );
 define( 'JUST_DUPLICATE_URL', plugin_dir_url( __FILE__ ) );
 
@@ -92,3 +92,16 @@ function just_duplicate_enqueue_admin_assets( $hook_suffix ) {
     }
 }
 add_action( 'admin_enqueue_scripts', 'just_duplicate_enqueue_admin_assets' );
+
+/**
+ * Add a "Support Us" link to the plugin's action links on the plugins page.
+ *
+ * @param array $links Existing plugin action links.
+ * @return array Modified plugin action links.
+ */
+function just_duplicate_add_support_us_link( array $links ): array {
+    $support_link = '<a href="https://justthere.co.uk/plugins/support-us/" style="color: red;" target="_blank">' . esc_html__( 'Support Us', 'just-duplicate' ) . '</a>';
+    array_unshift( $links, $support_link ); // Add the link to the beginning of the array.
+    return $links;
+}
+add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'just_duplicate_add_support_us_link' );

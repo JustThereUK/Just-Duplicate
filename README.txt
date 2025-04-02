@@ -6,39 +6,40 @@ Plugin URI: https://wordpress.org/plugins/just-duplicate
 Documentation URI: https://justthere.co.uk/plugins/just-duplicate/documentation
 Support URI: https://justthere.co.uk/plugins/just-duplicate/support
 Feature Request URI: https://justthere.co.uk/plugins/just-duplicate/feature-request
-Donate link: https://justthere.co.uk/donate
+Donate link: https://justthere.co.uk/plugins/support-us/
 Requires at least: 6.0
 Tested up to: 6.7
-Stable tag: 1.0.2
-Version: 1.0.2
+Stable tag: 1.0.3
+Version: 1.0.3
 Requires PHP: 7.4
 License: GNU General Public License v3.0 or later
 License URI: http://www.gnu.org/licenses/gpl.html
-Tags: post duplicator, page duplicator, WooCommerce product duplicator, duplicator
+Tags: duplicate posts, duplicate pages, duplicate WooCommerce products, WordPress duplicator, content duplicator, post duplicator, page duplicator, WooCommerce duplicator, batch duplication, role-based access control
 
-Easily duplicate pages, posts, custom post types, and WooCommerce products with Just Duplicate. A simple, fast, and customizable solution for WordPress content duplication.
+Easily duplicate WordPress pages, posts, custom post types, and WooCommerce products with one click.
 
 == Description ==
-Just Duplicate makes duplicating WordPress content effortless. Whether you're managing a blog, an online store, or a custom content-driven website, this plugin allows you to quickly duplicate pages, posts, custom post types, menus, media, and WooCommerce products with one click.
+**Just Duplicate** is the ultimate WordPress plugin for duplicating content effortlessly. Whether you're managing a blog, an e-commerce store, or a custom content-driven website, this plugin empowers you to duplicate pages, posts, custom post types, menus, media, and WooCommerce products with just one click.
 
-Built for efficiency, Just Duplicate saves time by eliminating repetitive content creation tasks. With role-based access control, you can restrict duplication permissions, ensuring only authorized users can duplicate content. Additionally, the plugin allows batch duplication for handling multiple items at once.
+Designed for speed and efficiency, **Just Duplicate** eliminates repetitive tasks, saving you time and effort. With advanced features like role-based access control, batch duplication, and customizable settings, you can tailor the duplication process to your needs. The plugin is lightweight, fast, and fully compatible with popular page builders like Elementor, Divi, and Gutenberg.
 
-Customize duplication settings to include post meta, taxonomies, attachments, and custom fields. Apply default prefixes and suffixes to duplicated content to keep everything organized.
-
-Compatible with major page builders like Elementor, Divi, and Gutenberg, Just Duplicate works seamlessly with any WordPress setup.
-
-👉 Simplify content management with Just Duplicate – the easiest way to duplicate WordPress content.
+👉 **Simplify your WordPress content management with Just Duplicate – the easiest and fastest way to duplicate WordPress content.**
 
 **Key Features:**
-✅ **One-Click Duplication** – Easily duplicate posts, pages, custom post types, and WooCommerce products.  
-🚀 **Batch Duplication** – Duplicate multiple items at once to streamline workflow.  
+✅ **One-Click Duplication** – Quickly duplicate posts, pages, custom post types, and WooCommerce products.  
+🚀 **Batch Duplication** – Duplicate multiple items simultaneously to boost productivity.  
 ⚙️ **Customizable Duplication Settings** – Choose what to copy: meta fields, taxonomies, attachments, featured images, and more.  
-🔑 **Role-Based Access Control** – Restrict duplication permissions to specific user roles.  
-📂 **Automatic Prefix/Suffix** – Add default text to duplicated items to differentiate them easily.  
-🛠️ **Seamless Compatibility** – Works with major page builders (Elementor, Divi, Gutenberg) and themes.  
-📢 **No Bloat, Just Speed** – Lightweight and optimized for fast performance.  
+🔑 **Role-Based Access Control** – Restrict duplication permissions to specific user roles for better security.  
+📂 **Automatic Prefix/Suffix** – Add default text to duplicated items for easy identification.  
+🛠️ **Seamless Compatibility** – Works flawlessly with Elementor, Divi, Gutenberg, and other major page builders and themes.  
+📢 **Lightweight and Optimized** – No bloat, just speed and performance.  
 
-For more information about Just Duplicate, visit [our website](https://justthere.co.uk/plugins/just-duplicate).
+**Why Choose Just Duplicate?**
+- Save time by automating repetitive content creation tasks.
+- Maintain consistency across your website with accurate duplication.
+- Enhance workflow with advanced features like batch duplication and role-based access control.
+
+For more details, visit [our website](https://justthere.co.uk/plugins/just-duplicate).
 
 == Installation ==
 
@@ -55,7 +56,7 @@ For more information about Just Duplicate, visit [our website](https://justthere
 == Frequently Asked Questions ==
 
 = How do I duplicate a post or page? =
-Once activated, hover over any post or page in your WordPress dashboard. You'll see a "Duplicate" option. Click it, and a new draft will be created instantly.
+Hover over any post or page in your WordPress dashboard. You'll see a "Duplicate" option. Click it, and a new draft will be created instantly.
 
 = Can I duplicate WooCommerce products? =
 Yes! Just Duplicate fully supports duplicating WooCommerce products, including their variations, images, and metadata.
@@ -76,11 +77,40 @@ No, Just Duplicate is lightweight and optimized for performance. It does not slo
 For support, visit [our support page](https://justthere.co.uk/plugins/just-duplicate/support) or ask in the WordPress support forum.
 
 == Screenshots ==
-1. Plugin settings page  
-2. Duplicate button on a post/page  
-3. Role-based access settings  
+1. Duplicate button on page tab.
+2. Preview duplication button on page tab.
+3. Actual preview of duplication.
+4. Duplication report log.
+5. Just Duplicate general settings.
 
 == Changelog ==
+
+= 1.0.3 =
+- Add: Media duplication functionality with AJAX support.
+- Add: Navigation menu duplication with parent-child relationship handling.
+- Add: Preview modal for duplication with enhanced UI/UX.
+- Add: Localization support for admin scripts.
+- Add: Scheduled duplication feature for posts/pages.
+- Add: Rollback functionality to undo the last duplicated post.
+- Add: Duplication logging for media and menus.
+- Add: Admin notice with a rollback link after duplication.
+- Add: Transient storage for tracking the last duplicated post ID.
+- Add: Scheduled Duplication feature to duplicate posts/pages at a specific time.
+- Add: Rollback functionality to undo the last duplicated post.
+- Add: Admin notice with a rollback link after duplication.
+- Add: Transient storage for tracking the last duplicated post ID.
+- Fix: Compatibility with Elementor and other page builders.
+- Fix: Nonce verification for AJAX actions.
+- Fix: Improved error handling for duplication failures.
+- Fix: Page builder compatibility.
+- Update: Enhanced admin settings page with tabbed navigation.
+- Update: Improved duplication logic for better performance and reliability.
+- Update: Admin styles for a modern and consistent look.
+- Update: Documentation links and support resources.
+- Update: Improved admin notices for better user feedback.
+- Update: Enhanced logging and reporting features.
+- Improvement: Enhanced duplication logic for better performance and reliability.
+- Improvement: Added nonce verification for rollback actions.
 
 = 1.0.2 =
 - Fix: Donation Link (Buy Us A Coffee)
@@ -128,7 +158,7 @@ For support, visit [our support page](https://justthere.co.uk/plugins/just-dupli
 - Initial release.
 
 == Upgrade Notice ==
-= 1.0.2 =
+= 1.0. =
 - No Major Changes (Safe Update)
 
 == Copyright ==

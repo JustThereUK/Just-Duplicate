@@ -31,7 +31,6 @@ class Menu_Duplicator {
         if ( ! current_user_can( 'manage_options' ) ) {
             return;
         }
-        // Build the base duplication URL using a constant nonce.
         $duplicate_base = wp_nonce_url(
             admin_url( 'admin-post.php?action=duplicate_menu' ),
             'duplicate_menu_action'
@@ -39,35 +38,31 @@ class Menu_Duplicator {
         ?>
         <script type="text/javascript">
         jQuery(document).ready(function($) {
-            console.log("Menu Duplicator hook fired");
-            // Create the Duplicate Menu button.
+            console.log("<?php echo esc_js(__('Menu Duplicator hook fired', 'just-duplicate')); ?>");
             var duplicateButton = $('<a>', {
-                text: '<?php esc_html_e( "Duplicate Menu", "just-duplicate" ); ?>',
+                text: '<?php echo esc_js(__('Duplicate Menu', 'just-duplicate')); ?>',
                 href: '#',
                 class: 'button button-secondary'
             });
             duplicateButton.on('click', function(e) {
                 e.preventDefault();
-                // Retrieve the current menu ID from the hidden input with id "menu".
                 var menuId = $('#menu').val();
-                console.log("Selected menu ID:", menuId);
+                console.log("<?php echo esc_js(__('Selected menu ID:', 'just-duplicate')); ?>", menuId);
                 if (!menuId || menuId == 0) {
-                    alert('<?php echo esc_js( __( "Please select a menu first.", "just-duplicate" ) ); ?>');
+                    alert('<?php echo esc_js(__('Please select a menu first.', 'just-duplicate')); ?>');
                     return;
                 }
-                // Build the final duplication URL by appending the menu ID.
                 var duplicateUrl = '<?php echo esc_url( $duplicate_base ); ?>' + '&menu=' + menuId;
-                console.log("Duplicate URL:", duplicateUrl);
+                console.log("<?php echo esc_js(__('Duplicate URL:', 'just-duplicate')); ?>", duplicateUrl);
                 window.location.href = duplicateUrl;
             });
-            // Append the button to the container.
             var target = $('#nav-menu-footer .major-publishing-actions');
             if (target.length) {
                 target.append(duplicateButton);
-                console.log("Duplicate button appended to .major-publishing-actions");
+                console.log("<?php echo esc_js(__('Duplicate button appended to .major-publishing-actions', 'just-duplicate')); ?>");
             } else {
                 $('#nav-menu-footer').append(duplicateButton);
-                console.log("Duplicate button appended to #nav-menu-footer");
+                console.log("<?php echo esc_js(__('Duplicate button appended to #nav-menu-footer', 'just-duplicate')); ?>");
             }
         });
         </script>
@@ -78,18 +73,21 @@ class Menu_Duplicator {
      * Handle the menu duplication action.
      */
     public static function handle_duplicate_menu(): void {
-        if ( ! isset( $_GET['_wpnonce'] ) || ! isset( $_GET['menu'] ) ) {
-            wp_die( esc_html( __( 'Missing required parameters.', 'just-duplicate' ) ) );
+        if ( ! isset( $_GET['_wpnonce'], $_GET['menu'] ) ) {
+            wp_die( esc_html__( 'Missing required parameters.', 'just-duplicate' ) );
         }
-        $menu_id = intval( $_GET['menu'] );
+
+        $menu_id = absint( $_GET['menu'] );
         $nonce   = sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) );
 
         if ( ! wp_verify_nonce( $nonce, 'duplicate_menu_action' ) ) {
-            wp_die( esc_html( __( 'Nonce verification failed.', 'just-duplicate' ) ) );
+            wp_die( esc_html__( 'Nonce verification failed.', 'just-duplicate' ) );
         }
+
         if ( ! $menu_id ) {
-            wp_die( esc_html( __( 'No menu specified.', 'just-duplicate' ) ) );
+            wp_die( esc_html__( 'No menu specified.', 'just-duplicate' ) );
         }
+
         $new_menu_id = self::duplicate_menu( $menu_id );
         if ( is_wp_error( $new_menu_id ) ) {
             wp_die( esc_html( $new_menu_id->get_error_message() ) );

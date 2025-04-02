@@ -37,6 +37,9 @@ class Admin_Settings {
         'duplicate_custom_taxonomies' => true,
         'duplicate_comments'       => true,
         'duplicate_featured_image' => true,
+        'custom_title'             => '',
+        'custom_slug'              => '',
+        'custom_post_status'       => 'draft',
     ];
 
     /**
@@ -185,6 +188,42 @@ class Admin_Settings {
             self::OPTION_KEY,
             'JUST_DUPLICATE_general'
         );
+
+        // Schedule Duplication field.
+        add_settings_field(
+            'schedule_duplication',
+            __( 'Schedule Duplication', 'just-duplicate' ),
+            [ __CLASS__, 'render_schedule_duplication_field' ],
+            self::OPTION_KEY,
+            'JUST_DUPLICATE_general'
+        );
+
+        // Custom Title field.
+        add_settings_field(
+            'custom_title',
+            __( 'Custom Title', 'just-duplicate' ),
+            [ __CLASS__, 'render_custom_title_field' ],
+            self::OPTION_KEY,
+            'JUST_DUPLICATE_general'
+        );
+
+        // Custom Slug field.
+        add_settings_field(
+            'custom_slug',
+            __( 'Custom Slug', 'just-duplicate' ),
+            [ __CLASS__, 'render_custom_slug_field' ],
+            self::OPTION_KEY,
+            'JUST_DUPLICATE_general'
+        );
+
+        // Custom Post Status field.
+        add_settings_field(
+            'custom_post_status',
+            __( 'Custom Post Status', 'just-duplicate' ),
+            [ __CLASS__, 'render_custom_post_status_field' ],
+            self::OPTION_KEY,
+            'JUST_DUPLICATE_general'
+        );
     }
 
     /**
@@ -205,6 +244,10 @@ class Admin_Settings {
             'duplicate_custom_taxonomies' => isset( $settings['duplicate_custom_taxonomies'] ) ? (bool) $settings['duplicate_custom_taxonomies'] : true,
             'duplicate_comments'       => isset( $settings['duplicate_comments'] ) ? (bool) $settings['duplicate_comments'] : true,
             'duplicate_featured_image' => isset( $settings['duplicate_featured_image'] ) ? (bool) $settings['duplicate_featured_image'] : true,
+            'custom_title'             => sanitize_text_field( $settings['custom_title'] ?? '' ),
+            'custom_slug'              => sanitize_title( $settings['custom_slug'] ?? '' ),
+            'custom_post_status'       => in_array( $settings['custom_post_status'], [ 'draft', 'publish', 'pending' ], true ) ? $settings['custom_post_status'] : 'draft',
+            'schedule_duplication'     => isset( $settings['schedule_duplication'] ) ? sanitize_text_field( $settings['schedule_duplication'] ) : '',
         ];
     }
 
@@ -359,6 +402,69 @@ class Admin_Settings {
     }
 
     /**
+     * Render the "Schedule Duplication" field.
+     *
+     * @return void
+     */
+    public static function render_schedule_duplication_field(): void {
+        ?>
+        <p>
+            <input type="datetime-local" name="schedule_duplication" />
+            <span class="description"><?php esc_html_e( 'Set a date and time to schedule duplication.', 'just-duplicate' ); ?></span>
+        </p>
+        <?php
+    }
+
+    /**
+     * Render the "Custom Title" field.
+     *
+     * @return void
+     */
+    public static function render_custom_title_field(): void {
+        $settings = get_option( self::OPTION_KEY, [] );
+        ?>
+        <p>
+            <input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[custom_title]" value="<?php echo esc_attr( $settings['custom_title'] ?? '' ); ?>" />
+            <span class="description"><?php esc_html_e( 'Set a custom title for duplicated items (optional).', 'just-duplicate' ); ?></span>
+        </p>
+        <?php
+    }
+
+    /**
+     * Render the "Custom Slug" field.
+     *
+     * @return void
+     */
+    public static function render_custom_slug_field(): void {
+        $settings = get_option( self::OPTION_KEY, [] );
+        ?>
+        <p>
+            <input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[custom_slug]" value="<?php echo esc_attr( $settings['custom_slug'] ?? '' ); ?>" />
+            <span class="description"><?php esc_html_e( 'Set a custom slug for duplicated items (optional).', 'just-duplicate' ); ?></span>
+        </p>
+        <?php
+    }
+
+    /**
+     * Render the "Custom Post Status" field.
+     *
+     * @return void
+     */
+    public static function render_custom_post_status_field(): void {
+        $settings = get_option( self::OPTION_KEY, [] );
+        ?>
+        <p>
+            <select name="<?php echo esc_attr( self::OPTION_KEY ); ?>[custom_post_status]">
+                <option value="draft" <?php selected( $settings['custom_post_status'] ?? 'draft', 'draft' ); ?>><?php esc_html_e( 'Draft', 'just-duplicate' ); ?></option>
+                <option value="publish" <?php selected( $settings['custom_post_status'] ?? 'draft', 'publish' ); ?>><?php esc_html_e( 'Publish', 'just-duplicate' ); ?></option>
+                <option value="pending" <?php selected( $settings['custom_post_status'] ?? 'draft', 'pending' ); ?>><?php esc_html_e( 'Pending', 'just-duplicate' ); ?></option>
+            </select>
+            <span class="description"><?php esc_html_e( 'Set the post status for duplicated items.', 'just-duplicate' ); ?></span>
+        </p>
+        <?php
+    }
+
+    /**
      * Add a custom bulk action for duplication.
      *
      * @param array $bulk_actions Existing bulk actions.
@@ -408,10 +514,15 @@ class Admin_Settings {
         $default_suffix = isset( $settings['default_suffix'] ) && '' !== $settings['default_suffix']
             ? (string) $settings['default_suffix']
             : ' (Copy)';
+        $custom_title   = isset( $settings['custom_title'] ) ? (string) $settings['custom_title'] : '';
+        $custom_slug    = isset( $settings['custom_slug'] ) ? (string) $settings['custom_slug'] : '';
+        $custom_status  = isset( $settings['custom_post_status'] ) ? (string) $settings['custom_post_status'] : 'draft';
+
         $new_post = [
-            'post_title'   => $default_prefix . $post->post_title . $default_suffix,
+            'post_title'   => $custom_title ?: $default_prefix . $post->post_title . $default_suffix,
+            'post_name'    => $custom_slug ?: sanitize_title( $default_prefix . $post->post_title . $default_suffix ),
             'post_content' => $post->post_content,
-            'post_status'  => 'draft',
+            'post_status'  => $custom_status,
             'post_type'    => $post->post_type,
             'post_author'  => get_current_user_id(),
             'post_excerpt' => $post->post_excerpt,
@@ -485,7 +596,6 @@ class Admin_Settings {
             <!-- Tabs Navigation -->
             <ul class="jd-tabs">
                 <li class="jd-tab active" data-tab="general-tab"><?php esc_html_e( 'General', 'just-duplicate' ); ?></li>
-                <li class="jd-tab" data-tab="advanced-tab"><?php esc_html_e( 'Advanced', 'just-duplicate' ); ?></li>
                 <li class="jd-tab" data-tab="help-tab"><?php esc_html_e( 'Help & Support', 'just-duplicate' ); ?></li>
                 <li class="jd-tab" data-tab="report-tab"><?php esc_html_e( 'Report', 'just-duplicate' ); ?></li>
             </ul>
@@ -498,10 +608,6 @@ class Admin_Settings {
                         submit_button();
                     ?>
                 </form>
-            </div>
-            <div class="jd-tab-content" id="advanced-tab">
-                <h2><?php esc_html_e( 'Advanced Settings', 'just-duplicate' ); ?></h2>
-                <p><?php esc_html_e( 'Coming Soon...', 'just-duplicate' ); ?></p>
             </div>
             <div class="jd-tab-content" id="help-tab">
                 <?php self::render_help_page(); ?>
@@ -546,7 +652,7 @@ class Admin_Settings {
                     </a>
                 </li>
                 <li>
-                    <a href="https://justthere.co.uk/donate" target="_blank">
+                    <a href="https://justthere.co.uk/plugins/support-us/" target="_blank">
                         <?php esc_html_e( 'Buy Us a Coffee', 'just-duplicate' ); ?>
                     </a>
                 </li>

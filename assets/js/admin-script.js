@@ -26,22 +26,22 @@ jQuery(document).ready(function($) {
                                     '<div class="preview-modal">' +
                                         '<span class="preview-modal-close">&times;</span>' +
                                         '<h2>' + response.data.title + '</h2>' +
-                                        '<p><strong>Author:</strong> ' + response.data.author + '</p>' +
-                                        '<p><strong>Date:</strong> ' + response.data.date + '</p>' +
+                                        '<p><strong>' + JustDuplicateL10n.author + ':</strong> ' + response.data.author + '</p>' +
+                                        '<p><strong>' + JustDuplicateL10n.date + ':</strong> ' + response.data.date + '</p>' +
                                         '<div class="preview-content">' + response.data.content + '</div>' +
                                         '<div class="preview-actions">' +
-                                            '<button class="button confirm-duplicate" data-duplicate-url="' + response.data.duplicate_url + '">Confirm Duplicate</button>' +
-                                            '<button class="button cancel-preview">Cancel</button>' +
+                                            '<button class="button confirm-duplicate" data-duplicate-url="' + response.data.duplicate_url + '">' + JustDuplicateL10n.confirmDuplicate + '</button>' +
+                                            '<button class="button cancel-preview">' + JustDuplicateL10n.cancel + '</button>' +
                                         '</div>' +
                                     '</div>' +
                                 '</div>';
                 $('body').append(modalHtml);
             } else {
-                alert('Error: ' + response.data);
+                alert(JustDuplicateL10n.error + ': ' + response.data);
             }
         }).fail(function(xhr, status, error) {
-            console.error('AJAX request failed:', status, error);
-            alert('AJAX error: ' + error);
+            console.error(JustDuplicateL10n.ajaxError + ':', status, error);
+            alert(JustDuplicateL10n.ajaxError + ': ' + error);
         });
     });
 

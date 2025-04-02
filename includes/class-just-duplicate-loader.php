@@ -78,6 +78,15 @@ final class Loader {
             }
         }
 
+        // Load Scheduled Duplicator.
+        $scheduled_duplicator_path = JUST_DUPLICATE_PATH . 'includes/class-scheduled-duplicator.php';
+        if ( file_exists( $scheduled_duplicator_path ) ) {
+            require_once $scheduled_duplicator_path;
+            if ( class_exists( 'Just_Duplicate\Scheduled_Duplicator' ) ) {
+                Scheduled_Duplicator::init();
+            }
+        }
+
         // Load admin-specific components if in admin area.
         if ( is_admin() ) {
             $this->define_admin_hooks();
@@ -98,6 +107,7 @@ final class Loader {
                 Admin_Settings::init();
             }
         }
+
         // Load Menu Duplicator.
         $menu_duplicator_path = JUST_DUPLICATE_PATH . 'includes/admin/class-menu-duplicator.php';
         if ( file_exists( $menu_duplicator_path ) ) {
@@ -106,6 +116,7 @@ final class Loader {
                 \Just_Duplicate\Admin\Menu_Duplicator::init();
             }
         }
+
         // Load Media Duplicator.
         $media_duplicator_path = JUST_DUPLICATE_PATH . 'includes/admin/class-media-duplicator.php';
         if ( file_exists( $media_duplicator_path ) ) {
@@ -114,5 +125,21 @@ final class Loader {
                 \Just_Duplicate\Admin\Media_Duplicator::init();
             }
         }
+
+        // Enqueue admin script with localization.
+        add_action('admin_enqueue_scripts', function() {
+            wp_localize_script(
+                'just-duplicate-admin-script',
+                'JustDuplicateL10n',
+                [
+                    'author' => __('Author', 'just-duplicate'),
+                    'date' => __('Date', 'just-duplicate'),
+                    'confirmDuplicate' => __('Confirm Duplicate', 'just-duplicate'),
+                    'cancel' => __('Cancel', 'just-duplicate'),
+                    'error' => __('Error', 'just-duplicate'),
+                    'ajaxError' => __('AJAX error', 'just-duplicate'),
+                ]
+            );
+        });
     }
 }
