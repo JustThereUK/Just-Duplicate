@@ -40,6 +40,8 @@ class Admin_Settings {
         'custom_title'             => '',
         'custom_slug'              => '',
         'custom_post_status'       => 'draft',
+        'custom_title_pattern'     => '',
+        'custom_slug_pattern'      => '',
     ];
 
     /**
@@ -219,8 +221,52 @@ class Admin_Settings {
         // Custom Post Status field.
         add_settings_field(
             'custom_post_status',
-            __( 'Custom Post Status', 'just-duplicate' ),
+            __( 'Duplicated Post Status', 'just-duplicate' ),
             [ __CLASS__, 'render_custom_post_status_field' ],
+            self::OPTION_KEY,
+            'JUST_DUPLICATE_general'
+        );
+
+        // Duplicate ACF Meta field.
+        add_settings_field(
+            'duplicate_acf_meta',
+            __( 'Duplicate ACF Meta', 'just-duplicate' ),
+            [ __CLASS__, 'render_duplicate_acf_meta_field' ],
+            self::OPTION_KEY,
+            'JUST_DUPLICATE_general'
+        );
+
+        // Duplicate SEO Meta field.
+        add_settings_field(
+            'duplicate_seo_meta',
+            __( 'Duplicate SEO Meta', 'just-duplicate' ),
+            [ __CLASS__, 'render_duplicate_seo_meta_field' ],
+            self::OPTION_KEY,
+            'JUST_DUPLICATE_general'
+        );
+
+        // Add fields for custom title and slug patterns.
+        add_settings_field(
+            'custom_title_pattern',
+            __( 'Custom Title Pattern', 'just-duplicate' ),
+            [ __CLASS__, 'render_custom_title_pattern_field' ],
+            self::OPTION_KEY,
+            'JUST_DUPLICATE_general'
+        );
+
+        add_settings_field(
+            'custom_slug_pattern',
+            __( 'Custom Slug Pattern', 'just-duplicate' ),
+            [ __CLASS__, 'render_custom_slug_pattern_field' ],
+            self::OPTION_KEY,
+            'JUST_DUPLICATE_general'
+        );
+
+        // Add a setting for media attachment handling.
+        add_settings_field(
+            'media_attachment_handling',
+            __( 'Media Attachment Handling', 'just-duplicate' ),
+            [ __CLASS__, 'render_media_attachment_handling_field' ],
             self::OPTION_KEY,
             'JUST_DUPLICATE_general'
         );
@@ -246,8 +292,13 @@ class Admin_Settings {
             'duplicate_featured_image' => isset( $settings['duplicate_featured_image'] ) ? (bool) $settings['duplicate_featured_image'] : true,
             'custom_title'             => sanitize_text_field( $settings['custom_title'] ?? '' ),
             'custom_slug'              => sanitize_title( $settings['custom_slug'] ?? '' ),
-            'custom_post_status'       => in_array( $settings['custom_post_status'], [ 'draft', 'publish', 'pending' ], true ) ? $settings['custom_post_status'] : 'draft',
+            'custom_post_status'       => in_array( $settings['custom_post_status'], [ 'draft', 'publish', 'pending', 'private' ], true ) ? $settings['custom_post_status'] : 'draft',
             'schedule_duplication'     => isset( $settings['schedule_duplication'] ) ? sanitize_text_field( $settings['schedule_duplication'] ) : '',
+            'duplicate_acf_meta'      => isset( $settings['duplicate_acf_meta'] ) ? (bool) $settings['duplicate_acf_meta'] : false,
+            'duplicate_seo_meta'      => isset( $settings['duplicate_seo_meta'] ) ? (bool) $settings['duplicate_seo_meta'] : false,
+            'custom_title_pattern'     => sanitize_text_field( $settings['custom_title_pattern'] ?? '' ),
+            'custom_slug_pattern'      => sanitize_text_field( $settings['custom_slug_pattern'] ?? '' ),
+            'media_attachment_handling' => $settings['media_attachment_handling'] ?? 'duplicate',
         ];
     }
 
@@ -456,10 +507,88 @@ class Admin_Settings {
         <p>
             <select name="<?php echo esc_attr( self::OPTION_KEY ); ?>[custom_post_status]">
                 <option value="draft" <?php selected( $settings['custom_post_status'] ?? 'draft', 'draft' ); ?>><?php esc_html_e( 'Draft', 'just-duplicate' ); ?></option>
-                <option value="publish" <?php selected( $settings['custom_post_status'] ?? 'draft', 'publish' ); ?>><?php esc_html_e( 'Publish', 'just-duplicate' ); ?></option>
+                <option value="private" <?php selected( $settings['custom_post_status'] ?? 'draft', 'private' ); ?>><?php esc_html_e( 'Private', 'just-duplicate' ); ?></option>
                 <option value="pending" <?php selected( $settings['custom_post_status'] ?? 'draft', 'pending' ); ?>><?php esc_html_e( 'Pending', 'just-duplicate' ); ?></option>
             </select>
             <span class="description"><?php esc_html_e( 'Set the post status for duplicated items.', 'just-duplicate' ); ?></span>
+        </p>
+        <?php
+    }
+
+    /**
+     * Render the "Duplicate ACF Meta" field.
+     *
+     * @return void
+     */
+    public static function render_duplicate_acf_meta_field(): void {
+        $settings = get_option( self::OPTION_KEY, [] );
+        ?>
+        <p>
+            <input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[duplicate_acf_meta]" value="1" <?php checked( $settings['duplicate_acf_meta'] ?? false, true ); ?> />
+            <label><?php esc_html_e( 'Duplicate ACF fields.', 'just-duplicate' ); ?></label>
+        </p>
+        <?php
+    }
+
+    /**
+     * Render the "Duplicate SEO Meta" field.
+     *
+     * @return void
+     */
+    public static function render_duplicate_seo_meta_field(): void {
+        $settings = get_option( self::OPTION_KEY, [] );
+        ?>
+        <p>
+            <input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[duplicate_seo_meta]" value="1" <?php checked( $settings['duplicate_seo_meta'] ?? false, true ); ?> />
+            <label><?php esc_html_e( 'Duplicate SEO meta fields.', 'just-duplicate' ); ?></label>
+        </p>
+        <?php
+    }
+
+    /**
+     * Render the "Custom Title Pattern" field.
+     *
+     * @return void
+     */
+    public static function render_custom_title_pattern_field(): void {
+        $settings = get_option( self::OPTION_KEY, [] );
+        ?>
+        <p>
+            <input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[custom_title_pattern]" value="<?php echo esc_attr( $settings['custom_title_pattern'] ?? '' ); ?>" />
+            <span class="description"><?php esc_html_e( 'Define a custom title pattern (e.g., "Copy of %original%" or "%original% - %date%").', 'just-duplicate' ); ?></span>
+        </p>
+        <?php
+    }
+
+    /**
+     * Render the "Custom Slug Pattern" field.
+     *
+     * @return void
+     */
+    public static function render_custom_slug_pattern_field(): void {
+        $settings = get_option( self::OPTION_KEY, [] );
+        ?>
+        <p>
+            <input type="text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[custom_slug_pattern]" value="<?php echo esc_attr( $settings['custom_slug_pattern'] ?? '' ); ?>" />
+            <span class="description"><?php esc_html_e( 'Define a custom slug pattern (e.g., "%original%-copy" or "%original%-%timestamp%").', 'just-duplicate' ); ?></span>
+        </p>
+        <?php
+    }
+
+    /**
+     * Render the "Media Attachment Handling" field.
+     *
+     * @return void
+     */
+    public static function render_media_attachment_handling_field(): void {
+        $settings = get_option( self::OPTION_KEY, [] );
+        ?>
+        <p>
+            <select name="<?php echo esc_attr( self::OPTION_KEY ); ?>[media_attachment_handling]">
+                <option value="duplicate" <?php selected( $settings['media_attachment_handling'] ?? 'duplicate', 'duplicate' ); ?>><?php esc_html_e( 'Duplicate Media', 'just-duplicate' ); ?></option>
+                <option value="reference" <?php selected( $settings['media_attachment_handling'] ?? 'duplicate', 'reference' ); ?>><?php esc_html_e( 'Reference Originals', 'just-duplicate' ); ?></option>
+            </select>
+            <span class="description"><?php esc_html_e( 'Choose whether to duplicate attached media or reference the originals.', 'just-duplicate' ); ?></span>
         </p>
         <?php
     }
@@ -547,6 +676,12 @@ class Admin_Settings {
                 }
             }
         }
+        if ( ! empty( $settings['duplicate_acf_meta'] ) ) {
+            self::copy_acf_meta( $post_id, (int) $new_post_id );
+        }
+        if ( ! empty( $settings['duplicate_seo_meta'] ) ) {
+            self::copy_seo_meta( $post_id, (int) $new_post_id );
+        }
     }
 
     /**
@@ -578,6 +713,42 @@ class Admin_Settings {
             $terms = wp_get_object_terms( $old_post_id, $taxonomy, [ 'fields' => 'slugs' ] );
             if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
                 wp_set_object_terms( $new_post_id, $terms, $taxonomy );
+            }
+        }
+    }
+
+    /**
+     * Copy ACF meta from the original post to the duplicated post.
+     *
+     * @param int $old_post_id Original post ID.
+     * @param int $new_post_id New post ID.
+     * @return void
+     */
+    private static function copy_acf_meta( int $old_post_id, int $new_post_id ): void {
+        // Assuming ACF functions are available.
+        $fields = get_field_objects( $old_post_id );
+        if ( $fields ) {
+            foreach ( $fields as $field ) {
+                $value = get_field( $field['key'], $old_post_id );
+                update_field( $field['key'], $value, $new_post_id );
+            }
+        }
+    }
+
+    /**
+     * Copy SEO meta from the original post to the duplicated post.
+     *
+     * @param int $old_post_id Original post ID.
+     * @param int $new_post_id New post ID.
+     * @return void
+     */
+    private static function copy_seo_meta( int $old_post_id, int $new_post_id ): void {
+        // Assuming SEO meta is stored as post meta with a specific prefix.
+        $seo_meta_keys = [ '_yoast_wpseo_title', '_yoast_wpseo_metadesc', '_yoast_wpseo_focuskw' ];
+        foreach ( $seo_meta_keys as $key ) {
+            $value = get_post_meta( $old_post_id, $key, true );
+            if ( $value ) {
+                update_post_meta( $new_post_id, $key, $value );
             }
         }
     }

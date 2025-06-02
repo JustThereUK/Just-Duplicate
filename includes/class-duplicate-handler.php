@@ -140,13 +140,24 @@ class Duplicate_Handler {
         do_action( 'just_duplicate_before_duplicate', $post_id );
 
         $settings = get_option( 'JUST_DUPLICATE_settings', [] );
+        $title_pattern = $settings['custom_title_pattern'] ?? '%original% (Copy)';
+        $slug_pattern = $settings['custom_slug_pattern'] ?? '%original%-copy';
+        $post_status = $settings['custom_post_status'] ?? 'draft';
 
         // Prepare the new post data.
         $new_post = [
-            'post_title'   => $settings['custom_title'] ?: $post->post_title . ' (Copy)',
-            'post_name'    => $settings['custom_slug'] ?: '',
+            'post_title'   => str_replace(
+                ['%original%', '%date%', '%timestamp%'],
+                [$post->post_title, date_i18n( 'Y-m-d' ), time()],
+                $title_pattern
+            ),
+            'post_name'    => str_replace(
+                ['%original%', '%date%', '%timestamp%'],
+                [sanitize_title( $post->post_title ), date_i18n( 'Y-m-d' ), time()],
+                $slug_pattern
+            ),
             'post_content' => $post->post_content,
-            'post_status'  => $settings['custom_post_status'] ?? 'draft',
+            'post_status'  => $post_status,
             'post_type'    => $post->post_type,
             'post_author'  => get_current_user_id(),
             'post_excerpt' => $post->post_excerpt,
@@ -164,11 +175,21 @@ class Duplicate_Handler {
         self::copy_post_taxonomies( $post_id, $new_post_id );
 
         // If the original post has a featured image, duplicate it.
-        $thumb_id = get_post_thumbnail_id( $post_id );
-        if ( $thumb_id ) {
-            $new_thumb_id = self::duplicate_attachment( $thumb_id, $new_post_id );
-            if ( $new_thumb_id ) {
-                set_post_thumbnail( $new_post_id, $new_thumb_id );
+        $settings = get_option( 'JUST_DUPLICATE_settings', [] );
+        $media_handling = $settings['media_attachment_handling'] ?? 'duplicate';
+
+        if ( 'duplicate' === $media_handling ) {
+            $thumb_id = get_post_thumbnail_id( $post_id );
+            if ( $thumb_id ) {
+                $new_thumb_id = self::duplicate_attachment( $thumb_id, $new_post_id );
+                if ( $new_thumb_id ) {
+                    set_post_thumbnail( $new_post_id, $new_thumb_id );
+                }
+            }
+        } elseif ( 'reference' === $media_handling ) {
+            $thumb_id = get_post_thumbnail_id( $post_id );
+            if ( $thumb_id ) {
+                set_post_thumbnail( $new_post_id, $thumb_id );
             }
         }
 
@@ -260,30 +281,26 @@ class Duplicate_Handler {
      * @param int $new_post_id New post ID.
      * @return void
      */
-    private static function copy_post_meta( int $old_post_id, int $new_post_id ): void {
+    public static function copy_post_meta( int $old_post_id, int $new_post_id ): void {
         $meta_data = get_post_meta( $old_post_id );
-
-        // Meta keys to exclude.
-        $exclude_keys = [
-            '_edit_lock',
-            '_edit_last',
-        ];
+        $settings = get_option( 'JUST_DUPLICATE_settings', [] );
 
         foreach ( $meta_data as $key => $values ) {
-            if ( in_array( $key, $exclude_keys, true ) ) {
+            // Skip ACF meta if not enabled.
+            if ( strpos( $key, 'acf_' ) === 0 && empty( $settings['duplicate_acf_meta'] ) ) {
                 continue;
             }
 
-            // Only copy Elementor-specific meta keys if the original post was edited in Elementor.
-            if ( in_array( $key, [ '_elementor_edit_mode', '_elementor_data', '_elementor_template_type', '_elementor_version' ], true ) ) {
-                $is_elementor = get_post_meta( $old_post_id, '_elementor_edit_mode', true );
-                if ( ! $is_elementor ) {
-                    continue;
-                }
+            // Skip SEO meta if not enabled.
+            if ( strpos( $key, '_yoast_' ) === 0 && empty( $settings['duplicate_seo_meta'] ) ) {
+                continue;
             }
 
-            foreach ( $values as $value ) {
-                add_post_meta( $new_post_id, $key, maybe_unserialize( $value ) );
+            // Skip custom fields if not enabled.
+            if ( ! empty( $settings['duplicate_custom_fields'] ) || ( ! strpos( $key, '_' ) === 0 ) ) {
+                foreach ( $values as $value ) {
+                    add_post_meta( $new_post_id, $key, maybe_unserialize( $value ) );
+                }
             }
         }
     }
@@ -348,7 +365,7 @@ class Duplicate_Handler {
         $taxonomies = get_object_taxonomies( $post_type );
 
         foreach ( $taxonomies as $taxonomy ) {
-            $terms = wp_get_object_terms( $old_post_id, $taxonomy, [ 'fields' => 'slugs' ] );
+            $terms = wp_get_object_terms( $old_post_id, $taxonomy, [ 'fields' => 'ids' ] );
             if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
                 wp_set_object_terms( $new_post_id, $terms, $taxonomy );
             }

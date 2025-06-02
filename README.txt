@@ -8,13 +8,13 @@ Support URI: https://justthere.co.uk/plugins/just-duplicate/support
 Feature Request URI: https://justthere.co.uk/plugins/just-duplicate/feature-request
 Donate link: https://justthere.co.uk/plugins/support-us/
 Requires at least: 6.0
-Tested up to: 6.7
-Stable tag: 1.0.3
-Version: 1.0.3
+Tested up to: 6.8
+Stable tag: 1.0.5
+Version: 1.0.5
 Requires PHP: 7.4
 License: GNU General Public License v3.0 or later
 License URI: http://www.gnu.org/licenses/gpl.html
-Tags: duplicate posts, duplicate pages, duplicate WooCommerce products, WordPress duplicator, content duplicator, post duplicator, page duplicator, WooCommerce duplicator, batch duplication, role-based access control
+Tags: Duplicate Page, Duplicate Post, Page Duplicator, Post Duplicator, Duplicate Custom Posts
 
 Easily duplicate WordPress pages, posts, custom post types, and WooCommerce products with one click.
 
@@ -84,6 +84,24 @@ For support, visit [our support page](https://justthere.co.uk/plugins/just-dupli
 5. Just Duplicate general settings.
 
 == Changelog ==
+
+= 1.0.5 =
+- Update: Improve image assets.
+- Update: README.txt.
+- Improvement: Code Improvement
+
+= 1.0.4 =
+- Add: Bulk duplication for custom taxonomies.
+- Add: Advanced filtering options for batch duplication.
+- Add: Integration with third-party plugins for extended compatibility.
+- Add: Enhanced UI for duplication settings with tooltips.
+- Add: Option to exclude specific post types from duplication.
+- Add: Support for duplicating reusable blocks.
+- Fix: Minor bugs in duplication logic for WooCommerce products.
+- Fix: Improved error messages for failed duplications.
+- Update: Optimized database queries for faster duplication.
+- Update: Improved compatibility with WordPress 6.8.
+- Improvement: Enhanced security for AJAX actions with additional nonce checks.
 
 = 1.0.3 =
 - Add: Media duplication functionality with AJAX support.
@@ -162,4 +180,5 @@ For support, visit [our support page](https://justthere.co.uk/plugins/just-dupli
 - No Major Changes (Safe Update)
 
 == Copyright ==
+Copyright © 2013 - 2025 Just There
 Just Duplicate is built with ❤️ by Just There.

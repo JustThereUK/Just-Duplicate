@@ -3,9 +3,9 @@
  * Plugin Name: Just Duplicate
  * Plugin URI: https://wordpress.org/plugins/just-duplicate
  * Description: A powerful plugin to duplicate pages, posts, custom post types, WooCommerce products, menus, and more. Supports batch duplication, customizable options, and compatibility with major plugins and themes.
- * Version: 1.0.3
+ * Version: 1.0.5
  * Requires at least: 5.0
- * Tested up to: 6.7
+ * Tested up to: 6.8
  * Requires PHP: 7.0
  * Author: Just There
  * Author URI: https://justthere.co.uk/
@@ -20,7 +20,7 @@
 defined( 'ABSPATH' ) || exit;
 
 // Define plugin constants.
-define( 'JUST_DUPLICATE_VERSION', '1.0.3' );
+define( 'JUST_DUPLICATE_VERSION', '1.0.5' );
 define( 'JUST_DUPLICATE_PATH', plugin_dir_path( __FILE__ ) );
 define( 'JUST_DUPLICATE_URL', plugin_dir_url( __FILE__ ) );
 
